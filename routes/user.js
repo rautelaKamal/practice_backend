@@ -1,4 +1,4 @@
-const {Router} = use(express);
+const {Router} = require("express");
 const userRouter = Router() // its a function even if it starts with capital
 
 
