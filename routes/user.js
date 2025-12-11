@@ -2,7 +2,8 @@ const {Router} = require("express");
 const userRouter = Router() // its a function even if it starts with capital
 const z = require("zod");
 const bcrypt = require("bcrypt");
-
+const jwt = require("jsonwebtoken");
+const JWT_USER_PASSWORD= "ilovecream";
 userRouter.post("/signup", async function(req,res){
      const requiredbody = z.object({
         email: z.string(),
@@ -34,14 +35,34 @@ userRouter.post("/signup", async function(req,res){
 })
 
 userRouter.post("/signin",async function(req,res){
-const {email, password} = req.body;
+const {email,password} = req.body;
 })
-    
-const user = userModel.findOne({
-    email:email,
-    password: password
-})
+//step 1
+const user = await userModel.findOne({email})
 
+if(!user){
+    res.status(403).json({
+     message:"Incorrect crendentials"
+    })
+}
+//step 2 compare passwords
+const isPasswordCorrect = await bcrypt.compare(password, user.password);
+if (!isPasswordCorrect) {
+    return res.status(403).json({
+      message: "Incorrect credentials",
+    });
+  }
+
+  // step 3
+const token = jwt.sign({
+   id: user._id
+},JWT_USER_PASSWORD);
+
+//do cookie logic
+
+res.json({
+    token:token
+})
 
 userRouter.get("/purchases",function(req,res){
 
