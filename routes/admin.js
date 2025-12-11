@@ -1,14 +1,63 @@
 const {Router} = require("express");
 const {adminModel} = require("../db");
 const adminRouter = Router();
+const z = require("zod");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const JWT_ADMIN_PASSWORD = "iloveshre"
+adminRouter.post("/signup", async function(req,res){
+const requiredbody = z.object({
+    email: z.string(),
+    password:z.string(),
+    firstName:z.string(),
+    lastName:z.string()
+})
+const parsed = requiredbody.safeParse(req.body);
+if(!parsed.success){
+    res.json({
+        message: "wrong format"
+    })
+}
+const {email,password,firstName,lastName} = parsed.data;
 
-adminRouter.post("/signup", function(req,res){
+const hasedPassword = await bcrypt.hash(password,10);
 
+await adminModel.create({
+    email,
+    password:hasedPassword,
+    firstName,
+    lastName,
+})
+    res.json({
+        message:"signed up",
+    })
 })
 
-adminRouter.post("/signin", function(req,res){
+adminRouter.post("/signin",async function(req,res){
+    const{email,password} = req.body;
 
-}) 
+    const admin =await adminModel.findOne({email});
+
+    if(!admin){
+        res.json({
+            message:"incorrect crendentials"
+        })
+    }
+    const checkPassword = await bcrypt.compare(password,admin.password);
+
+    if(!checkPassword){
+        res.json({
+            message:"incorrect password"
+        })
+    }
+    const token = jwt.sign({
+        id: admin._id
+    },JWT_ADMIN_PASSWORD);
+
+    res.json({
+        token:token,
+    });
+}); 
 adminRouter.post("/course", function(req,res){
 
 })
