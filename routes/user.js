@@ -1,8 +1,9 @@
 const {Router} = require("express");
 const userRouter = Router() // its a function even if it starts with capital
 const z = require("zod");
+const bcrypt = require("bcrypt");
 
-userRouter.post("/signup", function(req,res){
+userRouter.post("/signup", async function(req,res){
      const requiredbody = z.object({
         email: z.string(),
         password: z.string(),
@@ -19,14 +20,28 @@ userRouter.post("/signup", function(req,res){
         });
      }
      const {email,password,firstName,lastName} = parsed.data;
+    
+     const hashPassword = await bcrypt.hash(password,10);
+     await userModel.create({
+            email:email,
+            password: hashPassword,
+            firstName:firstName,
+            lastName: lastName
+     })
      res.json({
-        message: "signed up"
+        message: "signup successfull",
      })
 })
 
-userRouter.post("/signin", function(req,res){
-
+userRouter.post("/signin",async function(req,res){
+const {email, password} = req.body;
 })
+    
+const user = userModel.findOne({
+    email:email,
+    password: password
+})
+
 
 userRouter.get("/purchases",function(req,res){
 
