@@ -1,10 +1,12 @@
 const {Router} = require("express");
-const {adminModel} = require("../db");
+const {adminModel, courseModel} = require("../db");
 const adminRouter = Router();
 const z = require("zod");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const JWT_ADMIN_PASSWORD = "iloveshre"
+const {JWT_ADMIN_PASSWORD} = require("../config");
+const { adminMiddleware } = require("../middleware/admin");
+
 adminRouter.post("/signup", async function(req,res){
 const requiredbody = z.object({
     email: z.string(),
@@ -58,11 +60,32 @@ adminRouter.post("/signin",async function(req,res){
         token:token,
     });
 }); 
-adminRouter.post("/course", function(req,res){
+adminRouter.post("/course", adminMiddleware, async function(req,res){
+const reqCourse = z.object({
+    title: z.string(),
+    description: z.string(),
+    imageUrl: z.string().url(),
+    price:z.number(),
+    
+})
+const parsed = reqCourse.safeParse(req.body);
+if(!parsed){
+    res.json({
+        message:"error"
+    })
+}
+const { title,description,imageUrl,price } = req.body;
 
+const course = await courseModel.create({
+    title:title,
+    description:description,
+    imageUrl:imageUrl,
+    price:price,
+    creatorId:adminId
+})
 })
 
-adminRouter.put("/course", function(req,res){
+adminRouter.put("/course",adminMiddleware, function(req,res){
 
 }) // post course
 
