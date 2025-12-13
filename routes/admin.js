@@ -89,7 +89,38 @@ const course = await courseModel.create({
  })
 })
 
-adminRouter.put("/course",adminMiddleware, function(req,res){
+adminRouter.put("/course",adminMiddleware, async function(req,res){
+
+const reqCourse = z.object({
+    title: z.string(),
+    description: z.string(),
+    imageUrl: z.string().url(),
+    price:z.number(),
+    
+})
+const parsed = reqCourse.safeParse(req.body);
+if(!parsed){
+    res.json({
+        message:"error"
+    })
+}
+const adminId = req.userId;
+const { title,description,imageUrl,price,courseId } = req.body;
+
+const course = await courseModel.updateOne({
+    _id: courseId,
+    creatorId: adminID
+},{
+    title:title,
+    description:description,
+    imageUrl:imageUrl,
+    price:price,
+    creatorId:adminId
+})
+ res.json({
+    message: "course created",
+    courseId: course._id
+ })
 
 }) // post course
 
