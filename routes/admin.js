@@ -89,43 +89,63 @@ const course = await courseModel.create({
  })
 })
 
-adminRouter.put("/course",adminMiddleware, async function(req,res){
-
-const reqCourse = z.object({
+adminRouter.put("/course", adminMiddleware, async function (req, res) {
+  
+  const reqCourse = z.object({
     title: z.string(),
     description: z.string(),
     imageUrl: z.string().url(),
-    price:z.number(),
-    
-})
-const parsed = reqCourse.safeParse(req.body);
-if(!parsed){
-    res.json({
-        message:"error"
-    })
-}
+    price: z.number(),
+    courseId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid courseId")
+  });
+
+  const parsed = reqCourse.safeParse(req.body);
+
+  if (!parsed.success) {
+    return res.status(400).json({
+      message: "Invalid input",
+      errors: parsed.error.errors
+    });
+  }
+
+  const { title, description, imageUrl, price, courseId } = parsed.data;
+  const adminId = req.userId;
+
+  const result = await courseModel.updateOne(
+    {
+      _id: courseId,
+      creatorId: adminId
+    },
+    {
+      title,
+      description,
+      imageUrl,
+      price
+    }
+  );
+
+  if (result.modifiedCount === 0) {
+    return res.status(403).json({
+      message: "Update failed — either course not found or you are not the creator"
+    });
+  }
+
+  res.json({
+    message: "Course updated successfully",
+    updated: true
+  });
+}); // post course
+
+adminRouter.get("/course/bulk", adminMiddleware,async function(req,res){
 const adminId = req.userId;
-const { title,description,imageUrl,price,courseId } = req.body;
 
-const course = await courseModel.updateOne({
-    _id: courseId,
-    creatorId: adminID
-},{
-    title:title,
-    description:description,
-    imageUrl:imageUrl,
-    price:price,
-    creatorId:adminId
+const courses = await courseModel.find({
+    creatorId: adminId
+});
+res.json({
+    message: "course updated",
+    courses
 })
- res.json({
-    message: "course created",
-    courseId: course._id
- })
-
-}) // post course
-
-adminRouter.get("/course/bulk", function(req,res){
-
 }) // check course
 
 
