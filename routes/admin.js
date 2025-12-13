@@ -83,6 +83,10 @@ const course = await courseModel.create({
     price:price,
     creatorId:adminId
 })
+ res.json({
+    message: "course created",
+    courseId: course._id
+ })
 })
 
 adminRouter.put("/course",adminMiddleware, function(req,res){
