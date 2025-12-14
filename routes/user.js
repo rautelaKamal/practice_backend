@@ -3,7 +3,7 @@ const userRouter = Router();
 const z = require("zod");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { userModel } = require("../db");   // <-- Make sure this import exists
+const { userModel,purchaseModel } = require("../db");   // <-- Make sure this import exists
 const {JWT_USER_PASSWORD} = require("../config");
 
 
